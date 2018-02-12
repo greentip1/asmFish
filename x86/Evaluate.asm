@@ -8,13 +8,13 @@ OtherCheck		= ( 10 shl 16) + ( 10)
 CloseEnemies		= (  7 shl 16) + (  0)
 PawnlessFlank		= ( 20 shl 16) + ( 80)
 ThreatByHangingPawn	= ( 71 shl 16) + ( 61)
-ThreatBySafePawn        = (192 shl 16) + (175)
+ThreatBySafePawn        = (175 shl 16) + (168)
 ThreatByRank		= ( 16 shl 16) + (  3)
-Hanging 		= ( 48 shl 16) + ( 27)
+Hanging 		= ( 52 shl 16) + ( 30)
 WeakUnopposedPawn       = (  5 shl 16) + ( 25)
-ThreatByPawnPush	= ( 38 shl 16) + ( 22)
+ThreatByPawnPush	= ( 47 shl 16) + ( 26)
 ThreatByAttackOnQueen   = ( 38 shl 16) + ( 22)
-HinderPassedPawn	= (  7 shl 16) + (  0)
+HinderPassedPawn	= (  8 shl 16) + (  1)
 TrappedBishopA1H1       = ( 50 shl 16) + ( 50)
 
 LazyThreshold = 1500
@@ -126,29 +126,29 @@ macro EvalPieces Us, Pt
 	OutpostRanks	  = 0x000000FFFFFF0000
   end if
 
-	RookOnFile0	  = ((20 shl 16) + (7))
-	RookOnFile1	  = ((45 shl 16) + (20))
+	RookOnFile0	  = (20 shl 16) + (7)
+	RookOnFile1	  = (45 shl 16) + (20)
 
   if Pt = Knight
-	Outpost0	  = ((22 shl 16) + ( 6))
-	Outpost1	  = ((36 shl 16) + (12))
+	Outpost0	  = (22 shl 16) + ( 6)
+	Outpost1	  = (36 shl 16) + (12)
 	KingAttackWeight  = 78
 	MobilityBonus	  equ MobilityBonus_Knight
-        KingProtector_Pt  = ((-3 shl 16) + (-5))
+        KingProtector_Pt  = (-3 shl 16) + (-5)
   else if Pt = Bishop
-	Outpost0	  = (( 9 shl 16) + (2))
-	Outpost1	  = ((15 shl 16) + (5))
+	Outpost0	  = ( 9 shl 16) + (2)
+	Outpost1	  = (15 shl 16) + (5)
 	KingAttackWeight  = 56
 	MobilityBonus	  equ MobilityBonus_Bishop
-        KingProtector_Pt  = ((-4 shl 16) + (-3))
+        KingProtector_Pt  = (-4 shl 16) + (-3)
   else if Pt = Rook
 	KingAttackWeight  = 45
 	MobilityBonus	  equ MobilityBonus_Rook
-        KingProtector_Pt  = ((-3 shl 16) + (0))
+        KingProtector_Pt  = (-3 shl 16) + (0)
   else if Pt = Queen
 	KingAttackWeight  = 11
 	MobilityBonus	  equ MobilityBonus_Queen
-        KingProtector_Pt  = ((-1 shl 16) + (1))
+        KingProtector_Pt  = (-1 shl 16) + (1)
   else
     err 'bad Pt in Eval Pieces'
   end if
@@ -767,7 +767,7 @@ macro ShelterStorm Us
 		lea   r12d, [5*rcx]
 		lea   r12d, [r12+8*rcx+2]
 		shr   r12d, 4
-	; r12d = max(FILE_B, min(FILE_G, ecx))-1
+	; r12d = max(FILE_B, min(FILE_G, ecx)-1
 
 
   macro ShelterStormAcc
@@ -873,8 +873,8 @@ macro EvalThreats Us
   local ThreatMinorLoop, ThreatMinorDone, ThreatRookLoop, ThreatRookDone
   local ThreatMinorSkipPawn, ThreatRookSkipPawn
 
-        ThreatByKing0   = (( 3 shl 16) + ( 62))
-        ThreatByKing1   = (( 9 shl 16) + (138))
+        ThreatByKing0   = ( 3 shl 16) + ( 65)
+        ThreatByKing1   = ( 9 shl 16) + (145)
 
   if Us = White
 	;addsub		equ add
@@ -1025,6 +1025,7 @@ ThreatRookDone:
 
 WeakDone:
 
+      
             mov  rcx, qword[rbp + Pos.typeBB + 8*Rook]
              or  rcx, qword[rbp + Pos.typeBB + 8*Queen]
           movzx  edx, byte[rdi + PawnEntry.weakUnopposed]
@@ -1273,7 +1274,7 @@ Continue:
                test   r10, qword[ForwardBB+8*(64*Us+s)]
                 jnz   DoScaleDown
 		and   r10, PiecesThem
-	       test   r10, qword[PassedPawnMask+8*(r8+64*(Us))]
+	       test   r10, qword[PassedPawnMask+8*(r8+64*(Us)]
 		 jz   DontScaleDown
 DoScaleDown:
 		cdq
@@ -1325,8 +1326,8 @@ macro EvalSpace Us
 	PiecesUs       equ r14
 	PiecesThem     equ r15
 	Them	       = Black
-	SpaceMask      = ((FileCBB or FileDBB or FileEBB or FileFBB) \
-			    and (Rank2BB or Rank3BB or Rank4BB))
+	SpaceMask      = (FileCBB or FileDBB or FileEBB or FileFBB) \
+			    and (Rank2BB or Rank3BB or Rank4BB)
   else
 	;addsub	       equ sub
         macro addsub a, b
@@ -1338,8 +1339,8 @@ macro EvalSpace Us
 	PiecesUs       equ r15
 	PiecesThem     equ r14
 	Them	       = White
-	SpaceMask      = ((FileCBB or FileDBB or FileEBB or FileFBB) \
-			    and (Rank7BB or Rank6BB or Rank5BB))
+	SpaceMask      = (FileCBB or FileDBB or FileEBB or FileFBB) \
+			    and (Rank7BB or Rank6BB or Rank5BB)
   end if
 
 
@@ -1774,8 +1775,8 @@ end virtual
 	; adjust score for side to move
 
   ;// Interpolate between a middlegame and a (scaled by 'sf') endgame score
-  ;Value v =  mg_value(score) * int(ei.me->game_phase())
-  ;         + eg_value(score) * int(PHASE_MIDGAME - ei.me->game_phase()) * sf / SCALE_FACTOR_NORMAL;
+  ;Value v =  mg_value(score) * int(ei.me->game_phase()
+  ;         + eg_value(score) * int(PHASE_MIDGAME - ei.me->game_phase() * sf / SCALE_FACTOR_NORMAL;
   ;v /= int(PHASE_MIDGAME);
 		mov   ecx, dword[rbp+Pos.sideToMove]
 		mov   edi, 128
@@ -2035,11 +2036,11 @@ end iterate
 		 jz   .NotOnlyPawns
 .OnlyPawns:
 		mov   ecx, dword[rsp+4*(8*Black+Pawn)]
-		mov   eax, ((0) shl 16) + ((2*EndgameScale_KPsK_index+White) shl 0)
+		mov   eax, (0) shl 16) + (2*EndgameScale_KPsK_index+White) shl 0)
 	       test   ecx, ecx
 		 jz   .OnlyPawnsWrite
 		mov   edx, dword[rsp+4*(8*White+Pawn)]
-		mov   eax, (((2*EndgameScale_KPsK_index+Black)) shl 8) + ((0) shl 0)
+		mov   eax, ((2*EndgameScale_KPsK_index+Black) shl 8) + (0) shl 0)
 	       test   edx, edx
 		 jz   .OnlyPawnsWrite
 		xor   eax, eax
@@ -2047,7 +2048,7 @@ end iterate
 		jne   .OnlyPawnsWrite
 		cmp   edx, 1
 		jne   .OnlyPawnsWrite
-		mov   eax, (((2*EndgameScale_KPKP_index+Black)) shl 8) + ((2*EndgameScale_KPKP_index+White) shl 0)
+		mov   eax, ((2*EndgameScale_KPKP_index+Black) shl 8) + (2*EndgameScale_KPKP_index+White) shl 0)
 .OnlyPawnsWrite:
 		mov   word[rsi+MaterialEntry.scalingFunction], ax  ; write both entries
 .NotOnlyPawns:

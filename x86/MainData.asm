@@ -35,14 +35,14 @@ szUciResponse:
     db 'id name '
 szGreeting:
     db VERSION_PRE
-    ;db VERSION_OS
-    db 'CP_210218'
-    ;BuildTimeData
+    db VERSION_OS
+    db '_'
+    BuildTimeData
     db '_'
     db VERSION_POST
     NewLineData
 szGreetingEnd:
-    db 'id author TypingALot (modified by CounterPly)'
+    db 'id author TypingALot'
     NewLineData
     db 'option name Hash type spin default 16 min 1 max '
     IntegerStringData (1 shl MAX_HASH_LOG2MB)

@@ -284,7 +284,7 @@ Display	2, "Search(alpha=%i1, beta=%i2,	depth=%i8, cutNode=%i9)	called%n"
 	    ; Step 6. Razoring (skipped	when in	check)
   if PvNode = 0
 		mov   edx, dword[.depth]
-		cmp   edx, 4*ONE_PLY
+		cmp   edx, 3*ONE_PLY
 		jge   .6skip
 		mov   ecx, dword[.evalu]
 		mov   eax, dword[RazorMargin+4*rdx]

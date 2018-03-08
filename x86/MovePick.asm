@@ -338,15 +338,18 @@ MovePick_RECAPTURES_GEN:
 	       call   Gen_Captures
 		mov   r15, rdi
 		mov   r13, r14
-      ScoreCaptures   r13, rdi
+
 		lea   rdx, [MovePick_RECAPTURES]
 		mov   qword[rbx+State.stage], rdx
 
 
+	 ; adjust value to move = *cur++;
 MovePick_RECAPTURES:
 		cmp   r14, r15
 		 je   .WhileDone
-	   PickBest   r14, r13, r15
+
+	   	add   r14, sizeof.ExtMove
+
 		mov   eax, ecx
 		and   ecx, 63
 		cmp   ecx, dword[rbx+State.recaptureSquare]

@@ -481,63 +481,60 @@ macro EvalKing Us
 
 		movzx   ecx, byte[rbp+Pos.pieceList+16*(8*Us+King)]
 
-		mov   r11d, ecx
-	; r11d = our king square
-		movzx   eax, byte[rbx+State.castlingRights]
-		movzx   edx, byte[rdi+PawnEntry.castlingRights]
+		mov   r11d, ecx ; r11d = our king square
+		movzx eax, byte[rbx+State.castlingRights]
+		movzx edx, byte[rdi+PawnEntry.castlingRights]
 		mov   esi, dword[rdi+PawnEntry.kingSafety+4*Us]
 		cmp   cl, byte[rdi+PawnEntry.kingSquares+1*Us]
 		jne   DoKingSafety	; 27.75%
 		xor   eax, edx
-		test   eax, 3 shl (2*Us)
+		test  eax, 3 shl (2*Us)
 		jne   DoKingSafety	; 0.68%
 KingSafetyDoneRet:
 
 		mov   edi, dword[.ei.kingAttackersCount+4*Them]
-		movzx   ecx, byte[rbp+Pos.pieceEnd+(8*Them+Queen)]
+		movzx ecx, byte[rbp+Pos.pieceEnd+(8*Them+Queen)]
 		and   ecx, 15
 		add   ecx, edi
 
 		mov   r8, qword[.ei.attackedBy2+8*Us]
-		_andn   r8, r8, AttackedByThem
+		_andn r8, r8, AttackedByThem
 		mov   r9, AttackedByUs
 		not   r9
-		or   r9, qword[.ei.attackedBy+8*(8*Us+Queen)]
-		or   r9, qword[.ei.attackedBy+8*(8*Us+King)]
-		and   r8, r9
-	; r8 = weak
+		or    r9, qword[.ei.attackedBy+8*(8*Us+Queen)]
+		or    r9, qword[.ei.attackedBy+8*(8*Us+King)]
+		and   r8, r9 ; r8 = weak
 
 		mov   r9, qword[.ei.kingRing+8*Us]
 		and   r9, r8
 		cmp   ecx, 2
 
 		jb   AllDone
-		imul   edi, dword[.ei.kingAttackersWeight+4*Them]
-		imul   eax, dword[.ei.kingAdjacentZoneAttacksCount+4*Them], 102
+		imul  edi, dword[.ei.kingAttackersWeight+4*Them]
+		imul  eax, dword[.ei.kingAdjacentZoneAttacksCount+4*Them], 102
 		add   edi, eax
 
-		_popcnt   rax, r9, rcx
-		imul   eax, 191
-		add   edi, eax
-		test   PiecesThem, qword[rbp+Pos.typeBB+8*Queen]
-		lea   eax, [rdi-848]
+		_popcnt rax, r9, rcx
+		imul    eax, 191
+		add     edi, eax
+		test    PiecesThem, qword[rbp+Pos.typeBB+8*Queen]
+		lea     eax, [rdi-848]
 		cmovz   edi, eax
+
 	; the following	does edi += - 9*mg_value(score)/8 + 40
 		lea   ecx, [rsi+0x08000]
 		add   edi, 40
 		sar   ecx, 16
 		lea   edx, [9*rcx]
 		lea   eax, [9*rcx+7]
-		cmovs   edx, eax
+		cmovs edx, eax
 		sar   edx, 3
-		sub   edi, edx
-	; edi =	kingDanger
+		sub   edi, edx ; edi =	kingDanger
 
 		and   r8, qword[.ei.attackedBy2+8*Them]
-		_andn   r8, r8, AttackedByUs
-		or   r8, PiecesThem
-		not   r8
-	; r8 = safe
+		_andn r8, r8, AttackedByUs
+		or    r8, PiecesThem
+		not   r8 ; r8 = safe
 
 		mov   r9, qword[rbp+Pos.typeBB+8*Pawn]
 		mov   rax, PiecesThem
@@ -573,57 +570,59 @@ KingSafetyDoneRet:
 
 
 	; Enemy rooks safe and other checks
-		test r10, r8
-		lea eax, [rdi+RookCheck]
+		test   r10, r8
+		lea    eax, [rdi+RookCheck]
 		cmovnz edi, eax
-		jnz RookDone
-		or r9, r10
+		jnz    RookDone
+		or     r9, r10
   RookDone:
 
 	; Enemy bishops safe and other checks
-		test rdx, r8
-		lea eax, [rdi+BishopCheck]
+		test   rdx, r8
+		lea    eax, [rdi+BishopCheck]
 		cmovnz edi, eax
-		jnz BishopDone
-		or r9, rdx 
+		jnz    BishopDone
+		or     r9, rdx 
   BishopDone:
 
 	; Enemy knights safe and other checks
-		test rcx, r8
-		lea eax, [rdi+KnightCheck]
+		test   rcx, r8
+		lea    eax, [rdi+KnightCheck]
 		cmovnz edi, eax
-		jnz KnightDone
-		test rcx, r9
-		or r9, rcx 
+		jnz    KnightDone
+		test   rcx, r9
+		or     r9, rcx 
   KnightDone:
 
-		mov r10, qword[rbp+Pos.typeBB+8*Pawn]
-		mov rax, PiecesThem
+		mov   r10, qword[rbp+Pos.typeBB+8*Pawn]
+		mov   rax, PiecesThem
 		and   rax, r10
-		ShiftBB   Up, r10
-		and r10, rax
-		or r10, qword[.ei.attackedBy+8*(8*Us+Pawn)]
-		not r10
-		and r9, r10
+
+		ShiftBB Up, r10
+		and   r10, rax
+		or    r10, qword[.ei.attackedBy+8*(8*Us+Pawn)]
+		not   r10
+		and   r9, r10
 		
-		mov rdx, qword[.ei.pinnedPieces+8*Us]
-		or rdx, r9
+		mov   rdx, qword[.ei.pinnedPieces+8*Us]
+		or    rdx, r9
+
 		_popcnt rax, rdx, rcx
-		imul eax, 143
-		add edi, eax
+		imul  eax, 143
+		add   edi, eax
 
 	; Compute the king danger score and subtract it from the evaluation
 
-		test edi, edi
-		js AllDone
-		mov eax, edi
-		shr eax, 4		; kingDanger / 16
-		sub esi, eax
+		test  edi, edi
+		js    AllDone
+		mov   eax, edi
+		shr   eax, 4		; kingDanger / 16
+		sub   esi, eax
 		imul  edi, edi	; kingDanger * kingDanger
-		shr edi, 12	 ; previous / 4096
-		shl edi, 16
-		sub esi, edi
-		jmp AllDone
+		shr   edi, 12	 ; previous / 4096
+		shl   edi, 16
+		sub   esi, edi
+		jmp   AllDone
 
 DoKingSafety:
 	; rdi =	address	of PawnEntry

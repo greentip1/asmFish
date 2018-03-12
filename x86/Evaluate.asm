@@ -479,9 +479,9 @@ macro EvalKing Us
 		Assert   e, PiecesUs, qword[rbp+Pos.typeBB+8*Us], 'assertion PiecesUs failed in EvalKing'
 		Assert   e, PiecesThem, qword[rbp+Pos.typeBB+8*Them], 'assertion PiecesThem failed in EvalKing'
 
-		movzx   ecx, byte[rbp+Pos.pieceList+16*(8*Us+King)]
-
-		mov   r11d, ecx ; r11d = our king square
+		movzx ecx, byte[rbp+Pos.pieceList+16*(8*Us+King)]
+		mov   r11d, ecx 
+		; r11d = our king square
 		movzx eax, byte[rbx+State.castlingRights]
 		movzx edx, byte[rdi+PawnEntry.castlingRights]
 		mov   esi, dword[rdi+PawnEntry.kingSafety+4*Us]
@@ -539,7 +539,7 @@ KingSafetyDoneRet:
 		mov   r9, qword[rbp+Pos.typeBB+8*Pawn]
 		mov   rax, PiecesThem
 		and   rax, r9
-		xor r9, r9 ; other = 0
+		xor   r9, r9 ; other = 0
 
 		mov   rcx, qword[rbp+Pos.typeBB+8*Queen]
 		and   rcx, PiecesUs
@@ -549,15 +549,15 @@ KingSafetyDoneRet:
 		BishopAttacks rdx, r11, rcx, rax
 
 	; Enemy	queen safe checks
-		mov   rax, r10
-		or   rax, rdx
-		and   rax, qword[.ei.attackedBy+8*(8*Them+Queen)]
-		and   rax, r8
-		mov   rcx, qword[.ei.attackedBy+8*(8*Us+Queen)]
-		not   rcx
+		mov    rax, r10
+		or     rax, rdx
+		and    rax, qword[.ei.attackedBy+8*(8*Them+Queen)]
+		and    rax, r8
+		mov    rcx, qword[.ei.attackedBy+8*(8*Us+Queen)]
+		not    rcx
 		test   rax, rcx
-		lea   ecx, [rdi+QueenCheck]
-		cmovnz   edi, ecx
+		lea    ecx, [rdi+QueenCheck]
+		cmovnz edi, ecx
 
 
 		and   r10, qword[.ei.attackedBy+8*(8*Them+Rook)]
@@ -626,31 +626,31 @@ KingSafetyDoneRet:
 
 DoKingSafety:
 	; rdi =	address	of PawnEntry
-		movzx   ecx, byte[rbp+Pos.pieceList+16*(8*Us+King)]
+		movzx ecx, byte[rbp+Pos.pieceList+16*(8*Us+King)]
 
-		movzx   eax, byte[rbx+State.castlingRights]
-		movzx   edx, byte[rdi+PawnEntry.castlingRights]
+		movzx eax, byte[rbx+State.castlingRights]
+		movzx edx, byte[rdi+PawnEntry.castlingRights]
 		and   eax, 3 shl (2*Us)
 		and   edx, 3 shl (2*Them)
 		add   edx, eax
 		mov   byte[rdi+PawnEntry.kingSquares+1*Us], cl
 		mov   byte[rdi+PawnEntry.castlingRights], dl
 
-		call   ShelterStorm#Us
+		call  ShelterStorm#Us
 		mov   esi, eax
 		mov   ecx, SQ_G1 + Us*(SQ_G8-SQ_G1)
-		test   byte[rbx+State.castlingRights], 1 shl (2*Us+0)
-		jz   NoKingSide
-		call   ShelterStorm#Us
+		test  byte[rbx+State.castlingRights], 1 shl (2*Us+0)
+		jz    NoKingSide
+		call  ShelterStorm#Us
 		cmp   esi, eax
-		cmovl   esi, eax
+		cmovl esi, eax
 NoKingSide:
 		mov   ecx, SQ_C1 + Us*(SQ_C8-SQ_C1)
-		test   byte[rbx+State.castlingRights], 1 shl (2*Us+1)
-		jz   NoQueenSide
-		call   ShelterStorm#Us
+		test  byte[rbx+State.castlingRights], 1 shl (2*Us+1)
+		jz    NoQueenSide
+		call  ShelterStorm#Us
 		cmp   esi, eax
-		cmovl   esi, eax
+		cmovl esi, eax
 NoQueenSide:
 		shl   esi, 16
 	; esi = score
@@ -664,13 +664,13 @@ NoQueenSide:
   iterate i, 0, 1, 2, 3, 4, 5, 6
 		sub   esi, 16
 		mov   dword[rdi+PawnEntry.kingSafety+4*Us], esi
-		test   rdx, qword[rcx+8*i]
+		test  rdx, qword[rcx+8*i]
 		jnz   KingSafetyDoneRet
   end iterate
 		sub   esi, 16
 		mov   dword[rdi+PawnEntry.kingSafety+4*Us], esi
   if DEBUG
-                and   rdx, qword[rcx+8*7]
+		and   rdx, qword[rcx+8*7]
 		Assert   ne, rdx, 0, 'assertion rdx !=0 failed in  DoKingSafety'
   end if
 		jmp   KingSafetyDoneRet
@@ -782,7 +782,7 @@ macro ShelterStorm Us
 		mov   r8, qword[FileBB+8*r12]
 		and   r8, r10
 		bsf   rdi, r8
-		cmovz   edi, edx
+		cmovz edi, edx
 		shr   edi, 3
 	else
 		mov   r8, qword[FileBB+8*r12]

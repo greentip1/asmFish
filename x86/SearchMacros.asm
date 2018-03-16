@@ -314,7 +314,6 @@ Display	2, "Search(alpha=%i1, beta=%i2,	depth=%i8, cutNode=%i9)	called%n"
 .6skip:
   end if
 
-
 	    ; Step 7. Futility pruning:	child node (skipped when in check)
   if (RootNode = 0 & USE_MATEFINDER = 0) | (PvNode = 0 & USE_MATEFINDER	= 1)
 		mov   edx, dword[.depth]
@@ -329,13 +328,24 @@ Display	2, "Search(alpha=%i1, beta=%i2,	depth=%i8, cutNode=%i9)	called%n"
 		cmp   edx, dword[.beta]
 		jl   ._7skip
 		jge  .Return
+  if USE_MATEFINDER =	0
+	      movzx   ecx, word[rbx+State.npMaterial+2*rcx]	
+	       test   ecx, ecx	
+		jnz   .Return	
+    else	
+		mov   ecx, dword[rbx+State.npMaterial]	
+	       test   ecx, 0x0FFFF	
+		 jz   ._7skip	
+		shr   ecx, 16	
+		jnz   .Return	
+    end	if
 ._7skip:
   end if
 
 
 
 	    ; Step 8. Null move	search with verification search	(is omitted in PV nodes)
-  if PvNode = 0
+    if PvNode = 0
 		mov   edx, dword[.depth]
 	       imul   eax, edx,	36
 		add   eax, dword[rbx+State.staticEval]
@@ -343,6 +353,21 @@ Display	2, "Search(alpha=%i1, beta=%i2,	depth=%i8, cutNode=%i9)	called%n"
 		cmp   esi, dword[.evalu]
 		 jg   .8skip
 		add   esi, 225
+    if USE_MATEFINDER =	0	
+	      movzx   ecx, word[rbx+State.npMaterial+2*rcx]	
+	       test   ecx, ecx	
+		 jz   .8skip	
+    else	
+		mov   r8d, dword[.evalu]	
+		mov   ecx, dword[rbx+State.npMaterial]	
+	       test   ecx, 0x0FFFF	
+		 jz   .8skip	
+		shr   ecx, 16	
+		 jz   .8skip	
+		add   r8d, 2*VALUE_KNOWN_WIN1	
+		cmp   r8d, 4*VALUE_KNOWN_WIN1	
+		jae   .8skip	
+    end	if		
 		cmp   eax, esi
 		 jl   .8skip
 

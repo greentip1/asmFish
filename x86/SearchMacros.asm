@@ -369,6 +369,9 @@ Display	2, "Search(alpha=%i1, beta=%i2,	depth=%i8, cutNode=%i9)	called%n"
 		cmp   r8d, 4*VALUE_KNOWN_WIN-1
 		jae   .8skip
     end	if
+        movzx   ecx, word[rbx+State.npMaterial+2*rcx]
+	    test   ecx, ecx
+		jz   .8skip
 		cmp   eax, esi
 		 jl   .8skip
 
@@ -402,6 +405,17 @@ Display	2, "Search(alpha=%i1, beta=%i2,	depth=%i8, cutNode=%i9)	called%n"
 		cmp   eax, 6
 		 jb   .8skip
     end	if
+		jl   .8skip
+		;  && (ss->ply >= nmp_ply || ply % 2 == pair)) 
+		mov   eax, r12d
+		xor   edx, edx ; prepares for idiv
+		mov   byte[rbp-Thread.rootPos+Thread.nmp_ply], dl ; set nmp_ply = 0
+		mov   byte[Thread.pair], dl
+		cmp   eax, byte[rbp-Thread.rootPos+Thread.nmp_ply]
+		jl   .8skip
+		idiv  r12d, 2 ; remainder in edx
+		test  edx, byte[rbp-Thread.rootPos+Thread.pair]
+		jnz   .8skip ; if remainder NOT zero
 
 .8do:
 		mov   eax, CmhDeadOffset
@@ -426,7 +440,10 @@ Display	2, "Search(alpha=%i1, beta=%i2,	depth=%i8, cutNode=%i9)	called%n"
 
 		mov   esi, dword[.depth]
 		sub   esi, eax
+		;mov   ecx, eax
 	; esi = depth-R
+	; R = depth-esi
+	; r12d = ss->ply
 
 	       call   Move_DoNull
 		mov   byte[rbx+State.skipEarlyPruning],	-1
@@ -462,13 +479,25 @@ Display	2, "Search(alpha=%i1, beta=%i2,	depth=%i8, cutNode=%i9)	called%n"
 		jge   .8check
 		lea   ecx, [rdx+VALUE_KNOWN_WIN-1]
 		cmp   ecx, 2*(VALUE_KNOWN_WIN-1)
-		jbe   .Return
+	; esi = depth-R
+	; R = depth-esi
+
+	; Do verification at high depths 
+		add   eax, ONE_PLY ; R+=ONE_PLY
+
+	; disable null move pruning for side to move for the first part of remaining search tree
+		imul eax, esi, 3 	; 3*(depth-R)
+		sar eax, 2 			; 3*(depth-R)/4
+		add eax, r12d 		; num_ply = ss->ply + 3 * (depth-R) / 4
+		xor edx, edx
+		mov byte[rbp-Thread.rootPos+Thread.pair], edx ; thisThead->pair = (ss->ply % 2) == 0
 .8check:
 		mov   byte[rbx+State.skipEarlyPruning],	-1
 		mov   r8d, esi
 		xor   eax, eax
 		lea   r12, [QSearch_NonPv_NoCheck]
 		lea   rcx, [Search_NonPv]
+		mov   byte[rbp-Thread.rootPos+Thread.nmp_ply], 0
 		cmp   esi, ONE_PLY
 	     cmovge   r12, rcx
 	      cmovl   r8d, eax
@@ -476,6 +505,16 @@ Display	2, "Search(alpha=%i1, beta=%i2,	depth=%i8, cutNode=%i9)	called%n"
 		xor   r9d, r9d
 	       call   r12
 		mov   byte[rbx+State.skipEarlyPruning],	0
+	;thisThread->pair = pair
+	;thisThread->nmp_ply = nmp_ply 
+
+		mov byte[rbp-Thread.rootPos+Thread.pair], -1 		; pair = -1
+		mov byte[rbp-Thread.rootPos+Thread.nmp_ply], edx 	;nmp_ply = 0
+
+	; NOTE: Since "pair" and "nmp_ply" are defined as the constants -1 and 0, respectively, I have opted to hard-code them as shown above.
+
+	;if (v >= beta)
+	; return nullValue
 		cmp   eax, dword[.beta]
 		mov   eax, edi
 		jge   .Return

@@ -354,6 +354,21 @@ Display	2, "Search(alpha=%i1, beta=%i2,	depth=%i8, cutNode=%i9)	called%n"
 		cmp   esi, dword[.evalu]
 		 jg   .8skip
 		add   esi, 225
+		jl   .8skip
+	; && (ss->ply >= nmp_ply || ply % 2 == pair)) 
+		mov   cl, byte[rbp-Thread.rootPos+Thread.pair]
+		shl   cx, 8
+		mov   cl, byte[rbp-Thread.rootPos+Thread.nmp_ply]
+		mov   r12d, r10d ; put ss->ply back in r12, free up r10
+		mov   eax, r12d
+		and   eax, 1 ; ply % 2
+		cmp   al, cl
+		jl   .8skip
+		idiv  r12d, 2 ; remainder in lower 8 bits of edx
+		shr   cx, 8
+		test  dl, cl
+		jnz   .8skip
+
     if USE_MATEFINDER =	0
 	      movzx   ecx, word[rbx+State.npMaterial+2*rcx]
 	       test   ecx, ecx
@@ -369,6 +384,9 @@ Display	2, "Search(alpha=%i1, beta=%i2,	depth=%i8, cutNode=%i9)	called%n"
 		cmp   r8d, 4*VALUE_KNOWN_WIN-1
 		jae   .8skip
     end	if
+        movzx   ecx, word[rbx+State.npMaterial+2*rcx]
+	    test   ecx, ecx
+		jz   .8skip
 		cmp   eax, esi
 		 jl   .8skip
 
@@ -426,7 +444,9 @@ Display	2, "Search(alpha=%i1, beta=%i2,	depth=%i8, cutNode=%i9)	called%n"
 
 		mov   esi, dword[.depth]
 		sub   esi, eax
+	; mov   ecx, eax
 	; esi = depth-R
+	; r12d = ss->ply
 
 	       call   Move_DoNull
 		mov   byte[rbx+State.skipEarlyPruning],	-1
@@ -463,6 +483,34 @@ Display	2, "Search(alpha=%i1, beta=%i2,	depth=%i8, cutNode=%i9)	called%n"
 		lea   ecx, [rdx+VALUE_KNOWN_WIN-1]
 		cmp   ecx, 2*(VALUE_KNOWN_WIN-1)
 		jbe   .Return
+
+	; esi = depth-R
+
+	; Do verification at high depths 
+		add   esi, ONE_PLY ; R+=ONE_PLY
+
+	; // disable null move pruning for side to move for the first part of remaining search tree
+	; int nmp_ply = thisThread->nmp_ply;
+	; int pair = thisThread->pair;
+		xor   r10w, r10w
+		mov   r10b, byte[rpb-Thread.rootPos+Thread.nmp_ply]
+		shl   r10w, 8
+		mov   r10b, byte[rpb-Thread.rootPos+Thread.pair]
+	; r10w holds cpp int values for later
+		; r10w breakdown = 16 bits
+		;    "nmp_ply" 	 =  upper 8 bits
+		;     "pair"	 =  lower 8 bits
+		imul   eax, esi, 3
+		sar   eax, 2
+		add   eax, r12d
+		mov   byte[rbp-Thread.rootPos+Thread.pair], al
+		mov   eax, r12d
+		and   eax, 1 ; ply % 2
+		xor   r8d, r8d
+		test  eax, r8d
+		jne   .8check
+		mov   byte[rbp-Thread.rootPos+Thread.nmp_ply], dl
+
 .8check:
 		mov   byte[rbx+State.skipEarlyPruning],	-1
 		mov   r8d, esi
@@ -476,6 +524,17 @@ Display	2, "Search(alpha=%i1, beta=%i2,	depth=%i8, cutNode=%i9)	called%n"
 		xor   r9d, r9d
 	       call   r12
 		mov   byte[rbx+State.skipEarlyPruning],	0
+
+	; Now, reset "pair" and "nmp_ply" using the value previously stored in r10w
+	; thisThread->pair = pair
+		mov   byte[rbp-Thread.rootPos+Thread.pair], r10b
+		shr   r10w, 8
+	; thisThread->nmp_ply = nmp_ply
+		mov   byte[rbp-Thread.rootPos+Thread.nmp_ply], r10b
+		xor   r10w, r10w
+
+	; if (v >= beta)
+	; return nullValue
 		cmp   eax, dword[.beta]
 		mov   eax, edi
 		jge   .Return

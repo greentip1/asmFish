@@ -497,7 +497,8 @@ Display	2, "Search(alpha=%i1, beta=%i2,	depth=%i8, cutNode=%i9)	called%n"
 		and   eax, 1 ; ply % 2
 		xor   r8d, r8d
 		test  eax, r8d
-		cmovnz  byte[rbp-Thread.rootPos+Thread.pair], al
+		jz    .8check 
+		mov   byte[rbp-Thread.rootPos+Thread.pair], al
 .8check:
 		mov   byte[rbx+State.skipEarlyPruning],	-1
 		mov   r8d, esi

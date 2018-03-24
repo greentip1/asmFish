@@ -363,11 +363,10 @@ Display	2, "Search(alpha=%i1, beta=%i2,	depth=%i8, cutNode=%i9)	called%n"
 		mov   eax, r12d
 		and   eax, 1 ; ply % 2
 		cmp   al, cl
-		jl   .8skip
-		idiv  r12d, 2 ; remainder in lower 8 bits of edx
+		jz   .8skip
 		shr   cx, 8
-		test  dl, cl
-		jnz   .8skip
+		cmp  r12b, cl
+		jl   .8skip
 
     if USE_MATEFINDER =	0
 	      movzx   ecx, word[rbx+State.npMaterial+2*rcx]
@@ -493,9 +492,9 @@ Display	2, "Search(alpha=%i1, beta=%i2,	depth=%i8, cutNode=%i9)	called%n"
 	; int nmp_ply = thisThread->nmp_ply;
 	; int pair = thisThread->pair;
 		xor   r10w, r10w
-		mov   r10b, byte[rpb-Thread.rootPos+Thread.nmp_ply]
+		mov   r10b, byte[rbp-Thread.rootPos+Thread.nmp_ply]
 		shl   r10w, 8
-		mov   r10b, byte[rpb-Thread.rootPos+Thread.pair]
+		mov   r10b, byte[rbp-Thread.rootPos+Thread.pair]
 	; r10w holds cpp int values for later
 		; r10w breakdown = 16 bits
 		;    "nmp_ply" 	 =  upper 8 bits

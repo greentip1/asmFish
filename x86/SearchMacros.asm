@@ -354,7 +354,6 @@ Display	2, "Search(alpha=%i1, beta=%i2,	depth=%i8, cutNode=%i9)	called%n"
 		cmp   esi, dword[.evalu]
 		 jg   .8skip
 		add   esi, 225
-		jl   .8skip
 	; && (ss->ply >= nmp_ply || ply % 2 == pair)) 
 		mov   cl, byte[rbp-Thread.rootPos+Thread.pair]
 		shl   cx, 8
@@ -383,9 +382,6 @@ Display	2, "Search(alpha=%i1, beta=%i2,	depth=%i8, cutNode=%i9)	called%n"
 		cmp   r8d, 4*VALUE_KNOWN_WIN-1
 		jae   .8skip
     end	if
-        movzx   ecx, word[rbx+State.npMaterial+2*rcx]
-	    test   ecx, ecx
-		jz   .8skip
 		cmp   eax, esi
 		 jl   .8skip
 
@@ -443,9 +439,7 @@ Display	2, "Search(alpha=%i1, beta=%i2,	depth=%i8, cutNode=%i9)	called%n"
 
 		mov   esi, dword[.depth]
 		sub   esi, eax
-	; mov   ecx, eax
 	; esi = depth-R
-	; r12d = ss->ply
 
 	       call   Move_DoNull
 		mov   byte[rbx+State.skipEarlyPruning],	-1
@@ -482,9 +476,7 @@ Display	2, "Search(alpha=%i1, beta=%i2,	depth=%i8, cutNode=%i9)	called%n"
 		lea   ecx, [rdx+VALUE_KNOWN_WIN-1]
 		cmp   ecx, 2*(VALUE_KNOWN_WIN-1)
 		jbe   .Return
-
 	; esi = depth-R
-
 	; Do verification at high depths 
 		add   esi, ONE_PLY ; R+=ONE_PLY
 
@@ -509,7 +501,6 @@ Display	2, "Search(alpha=%i1, beta=%i2,	depth=%i8, cutNode=%i9)	called%n"
 		test  eax, r8d
 		jne   .8check
 		mov   byte[rbp-Thread.rootPos+Thread.nmp_ply], dl
-
 .8check:
 		mov   byte[rbx+State.skipEarlyPruning],	-1
 		mov   r8d, esi
@@ -523,7 +514,6 @@ Display	2, "Search(alpha=%i1, beta=%i2,	depth=%i8, cutNode=%i9)	called%n"
 		xor   r9d, r9d
 	       call   r12
 		mov   byte[rbx+State.skipEarlyPruning],	0
-
 	; Now, reset "pair" and "nmp_ply" using the value previously stored in r10w
 	; thisThread->pair = pair
 		mov   byte[rbp-Thread.rootPos+Thread.pair], r10b
@@ -531,7 +521,6 @@ Display	2, "Search(alpha=%i1, beta=%i2,	depth=%i8, cutNode=%i9)	called%n"
 	; thisThread->nmp_ply = nmp_ply
 		mov   byte[rbp-Thread.rootPos+Thread.nmp_ply], r10b
 		xor   r10w, r10w
-
 	; if (v >= beta)
 	; return nullValue
 		cmp   eax, dword[.beta]

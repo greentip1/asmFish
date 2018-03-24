@@ -79,7 +79,6 @@ Evaluate_Init:
 	      stosq
 	      stosq
 
-                lea   rsi, [.QueenMinorsImbalance]
                 lea   rdi, [QueenMinorsImbalance]
                 mov   ecx, 16
           rep movsd
@@ -293,20 +292,17 @@ Evaluate_Init:
 
 
 
-.QueenMinorsImbalance:
-        dd 31, -8, -15, -25, -5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-
 .QuadraticOurs:
 	dd 0, 1667,    0,    0,    0,	 0,    0,    0
 	dd 0,	40,    0,    0,    0,	 0,    0,    0
 	dd 0,	32,  255,   -3,    0,	 0,    0,    0
 	dd 0,	 0,  104,    4,    0,	 0,    0,    0
 	dd 0,  -26,   -2,   47,  105, -149,    0,    0
-	dd 0, -185,   24,  122,  137, -134,    0,    0
+	dd 0, -189,   24,  117,  133, -134,  -10,    0
 .QuadraticTheirs:
 	dd 0,	 0,    0,    0,    0,	 0,    0,    0
 	dd 0,	36,    0,    0,    0,	 0,    0,    0
 	dd 0,	 9,   63,    0,    0,	 0,    0,    0
 	dd 0,	59,   65,   42,    0,	 0,    0,    0
 	dd 0,	46,   39,   24,  -24,	 0,    0,    0
-	dd 0,  101,  100,  -37,  141,  268,    0,    0
+	dd 0,   97,  100,  -42,  137,  268,    0,    0

@@ -366,7 +366,6 @@ Display	2, "Search(alpha=%i1, beta=%i2,	depth=%i8, cutNode=%i9)	called%n"
 		shr   cx, 8
 		cmp  r12b, cl
 		jl   .8skip
-
     if USE_MATEFINDER =	0
 	      movzx   ecx, word[rbx+State.npMaterial+2*rcx]
 	       test   ecx, ecx
@@ -479,7 +478,6 @@ Display	2, "Search(alpha=%i1, beta=%i2,	depth=%i8, cutNode=%i9)	called%n"
 	; esi = depth-R
 	; Do verification at high depths 
 		add   esi, ONE_PLY ; R+=ONE_PLY
-
 	; // disable null move pruning for side to move for the first part of remaining search tree
 	; int nmp_ply = thisThread->nmp_ply;
 	; int pair = thisThread->pair;

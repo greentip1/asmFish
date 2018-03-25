@@ -354,6 +354,19 @@ Display	2, "Search(alpha=%i1, beta=%i2,	depth=%i8, cutNode=%i9)	called%n"
 		cmp   esi, dword[.evalu]
 		 jg   .8skip
 		add   esi, 225
+	; && (ss->ply >= nmp_ply || ss->ply % 2 == pair)) 
+		mov   cl, byte[rbp-Thread.rootPos+Thread.nmp_ply]
+		shl   cx, 8
+		mov   cl, byte[rbp-Thread.rootPos+Thread.pair]
+		xor   r12d, r12d
+		mov   r12b, byte[rbx-1*sizeof.State+State.ply]
+		mov   eax, r12d
+		and   eax, 1 ; ss->ply % 2
+		cmp   al, cl
+		jne   .8skip
+		shr   cx, 8
+		cmp  r12b, cl
+		jl   .8skip
     if USE_MATEFINDER =	0
 	      movzx   ecx, word[rbx+State.npMaterial+2*rcx]
 	       test   ecx, ecx

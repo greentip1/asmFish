@@ -131,7 +131,6 @@ Display	2, "Search(alpha=%i1, beta=%i2,	depth=%i8, cutNode=%i9)	called%n"
 	; Step 3. mate distance	pruning
 		mov   ecx, dword[.alpha]
 		mov   edx, dword[.beta]
-		mov   r10d, r12d ; preserve ss->ply value for Step 8
 		mov   eax, r12d
 		sub   eax, VALUE_MATE
 		cmp   ecx, eax
@@ -359,7 +358,8 @@ Display	2, "Search(alpha=%i1, beta=%i2,	depth=%i8, cutNode=%i9)	called%n"
 		mov   cl, byte[rbp-Thread.rootPos+Thread.nmp_ply]
 		shl   cx, 8
 		mov   cl, byte[rbp-Thread.rootPos+Thread.pair]
-		mov   r12d, r10d ; put ss->ply back in r12, free up r10
+		xor   r12d, r12d
+		mov   r12b, byte[rbx-1*sizeof.State+State.ply]
 		mov   eax, r12d
 		and   eax, 1 ; ss->ply % 2
 		cmp   al, cl

@@ -131,6 +131,7 @@ Display	2, "Search(alpha=%i1, beta=%i2,	depth=%i8, cutNode=%i9)	called%n"
 	; Step 3. mate distance	pruning
 		mov   ecx, dword[.alpha]
 		mov   edx, dword[.beta]
+		mov   r10d, r12d ; preserve ss->ply value for Step 8
 		mov   eax, r12d
 		sub   eax, VALUE_MATE
 		cmp   ecx, eax
@@ -354,15 +355,15 @@ Display	2, "Search(alpha=%i1, beta=%i2,	depth=%i8, cutNode=%i9)	called%n"
 		cmp   esi, dword[.evalu]
 		 jg   .8skip
 		add   esi, 225
-	; && (ss->ply >= nmp_ply || ply % 2 == pair)) 
-		mov   cl, byte[rbp-Thread.rootPos+Thread.pair]
-		shl   cx, 8
+	; && (ss->ply >= nmp_ply || ss->ply % 2 == pair)) 
 		mov   cl, byte[rbp-Thread.rootPos+Thread.nmp_ply]
+		shl   cx, 8
+		mov   cl, byte[rbp-Thread.rootPos+Thread.pair]
 		mov   r12d, r10d ; put ss->ply back in r12, free up r10
 		mov   eax, r12d
-		and   eax, 1 ; ply % 2
+		and   eax, 1 ; ss->ply % 2
 		cmp   al, cl
-		jz   .8skip
+		jne   .8skip
 		shr   cx, 8
 		cmp  r12b, cl
 		jl   .8skip
@@ -477,7 +478,7 @@ Display	2, "Search(alpha=%i1, beta=%i2,	depth=%i8, cutNode=%i9)	called%n"
 		jbe   .Return
 	; esi = depth-R
 	; Do verification at high depths 
-		add   esi, ONE_PLY ; R+=ONE_PLY
+		add   esi, ONE_PLY ; [depth-R] += ONE_PLY
 	; // disable null move pruning for side to move for the first part of remaining search tree
 	; int nmp_ply = thisThread->nmp_ply;
 	; int pair = thisThread->pair;
@@ -494,10 +495,8 @@ Display	2, "Search(alpha=%i1, beta=%i2,	depth=%i8, cutNode=%i9)	called%n"
 		add   eax, r12d
 		mov   byte[rbp-Thread.rootPos+Thread.nmp_ply], al
 		mov   eax, r12d
-		and   eax, 1 ; ply % 2
-		xor   r8d, r8d
-		test  eax, r8d
-		jz    .8check 
+		and   eax, 1 ; ss->ply % 2
+		xor   eax, 1 ;(ss->ply % 2) == 0;
 		mov   byte[rbp-Thread.rootPos+Thread.pair], al
 .8check:
 		mov   byte[rbx+State.skipEarlyPruning],	-1

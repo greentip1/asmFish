@@ -61,7 +61,7 @@ Thread_Create:
                 mov   dword[rbx+Thread.resetCnt], eax   ; resetCnt is set to minimum in 
                 mov   dword[rbx+Thread.callsCnt], eax   ;  ThreadPool_StartThinking
 		mov   byte[rbx+Thread.nmp_ply], al ; th->nmp_ply = 0
-		mov   byte[rbx+Thread.pair], -1 ; th->pair = -1
+		mov   byte[rbx+Thread.pair], 2 ; th->pair = -1
 		mov   dword[rbx+Thread.idx], esi
 		mov   qword[rbx+Thread.numaNode], rdi
 

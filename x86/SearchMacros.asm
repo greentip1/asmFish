@@ -360,9 +360,8 @@ Display	2, "Search(alpha=%i1, beta=%i2,	depth=%i8, cutNode=%i9)	called%n"
 		mov   dl, byte[rbp-Thread.rootPos+Thread.pair]
 		xor   r12d, r12d
 		mov   r12b, byte[rbx-1*sizeof.State+State.ply]
-		mov   eax, r12d
-		and   eax, 1 ; ss->ply % 2
-		cmp   al, dl
+		and   r12d, 1 ; ss->ply % 2
+		cmp   r12b, dl
 		;jne   .8skip
 		shr   dx, 8
 		cmp  r12b, dl

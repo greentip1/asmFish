@@ -354,6 +354,19 @@ Display	2, "Search(alpha=%i1, beta=%i2,	depth=%i8, cutNode=%i9)	called%n"
 		cmp   esi, dword[.evalu]
 		 jg   .8skip
 		add   esi, 225
+		; && (ss->ply >= nmp_ply || ss->ply % 2 == pair)) 
+		mov   dl, byte[rbp-Thread.rootPos+Thread.nmp_ply]
+		shl   dx, 8
+		mov   dl, byte[rbp-Thread.rootPos+Thread.pair]
+		xor   r12d, r12d
+		mov   r12b, byte[rbx-1*sizeof.State+State.ply]
+		mov   eax, r12d
+		and   eax, 1 ; ss->ply % 2
+		cmp   al, dl
+		;jne   .8skip
+		shr   dx, 8
+		cmp  r12b, dl
+		;jl   .8skip
     if USE_MATEFINDER =	0
 	      movzx   ecx, word[rbx+State.npMaterial+2*rcx]
 	       test   ecx, ecx
@@ -463,6 +476,28 @@ Display	2, "Search(alpha=%i1, beta=%i2,	depth=%i8, cutNode=%i9)	called%n"
 		lea   ecx, [rdx+VALUE_KNOWN_WIN-1]
 		cmp   ecx, 2*(VALUE_KNOWN_WIN-1)
 		jbe   .Return
+		; esi = depth-R
+	    ; Do verification at high depths 
+;		add   esi, ONE_PLY ; [depth-R] += ONE_PLY
+	    ; // disable null move pruning for side to move for the first part of remaining search tree
+	    ; int nmp_ply = thisThread->nmp_ply;
+	    ; int pair = thisThread->pair;
+		xor   r10w, r10w
+		mov   r10b, byte[rbp-Thread.rootPos+Thread.nmp_ply]
+		shl   r10w, 8
+		mov   r10b, byte[rbp-Thread.rootPos+Thread.pair]
+	    ; r10w holds cpp int values for later
+		; r10w breakdown = 16 bits
+		;    "nmp_ply" 	 =  upper 8 bits
+		;     "pair"	 =  lower 8 bits
+		imul   eax, esi, 3
+		sar   eax, 2
+		add   eax, r12d
+		mov   byte[rbp-Thread.rootPos+Thread.nmp_ply], al
+		mov   eax, r12d
+		and   eax, 1 ; ss->ply % 2
+		xor   eax, 1 ;(ss->ply % 2) == 0;
+		mov   byte[rbp-Thread.rootPos+Thread.pair], al
 .8check:
 		mov   byte[rbx+State.skipEarlyPruning],	-1
 		mov   r8d, esi
@@ -476,6 +511,15 @@ Display	2, "Search(alpha=%i1, beta=%i2,	depth=%i8, cutNode=%i9)	called%n"
 		xor   r9d, r9d
 	       call   r12
 		mov   byte[rbx+State.skipEarlyPruning],	0
+	; Now, reset "pair" and "nmp_ply" using the value previously stored in r10w
+	; thisThread->pair = pair
+		mov   byte[rbp-Thread.rootPos+Thread.pair], r10b
+		shr   r10w, 8
+	; thisThread->nmp_ply = nmp_ply
+		mov   byte[rbp-Thread.rootPos+Thread.nmp_ply], r10b
+		xor   r10w, r10w
+	; if (v >= beta)
+	; return nullValue
 		cmp   eax, dword[.beta]
 		mov   eax, edi
 		jge   .Return

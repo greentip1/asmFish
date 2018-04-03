@@ -2,14 +2,14 @@
 Options_Init:
 	    lea  rdx, [options]
 	    mov  byte[rdx + Options.displayInfoMove], -1
-	    mov  dword[rdx + Options.contempt], 12
+	    mov  dword[rdx + Options.contempt], 0
 	    mov  dword[rdx + Options.threads], 1
 	    mov  dword[rdx + Options.hash], 16
 	    mov  byte[rdx + Options.ponder], 0
 	    mov  dword[rdx + Options.multiPV], 1
-	    mov  dword[rdx+Options.moveOverhead], 50
+	    mov  dword[rdx+Options.moveOverhead], 30
 	    mov  dword[rdx+Options.minThinkTime], 20
-	    mov  dword[rdx+Options.slowMover], 84
+	    mov  dword[rdx+Options.slowMover], 89
 	    mov  byte[rdx + Options.chess960], 0
 	    mov  dword[rdx + Options.syzygyProbeDepth], 1
 	    mov  byte[rdx + Options.syzygy50MoveRule], -1
@@ -817,7 +817,7 @@ end if
 	    jmp  UciGetInput
 .Hash:
 	   call  ParseInteger
-  ClampUnsigned  eax, 1, MAX_HASH
+  ClampUnsigned  eax, 1, 1 shl MAX_HASH_LOG2MB
 	    mov  ecx, eax
 	    mov  dword[options.hash], eax
 	    mov  byte[options.changed], -1
@@ -1172,7 +1172,7 @@ UciBench:
 	    lea  rdi, [.parse_threads]
 	   call  SkipSpaces
 	   call  ParseInteger
-  ClampUnsigned  eax, 1, MAX_HASH
+  ClampUnsigned  eax, 1, 1 shl MAX_HASH_LOG2MB
 	    mov  r14d, eax
 	    jmp  .parse_loop
 .parse_threads:
